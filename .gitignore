@@ -21,3 +21,6 @@ project/project/
 project/target/
 sbt/target/
 _gsdata_
+
+#data
+data/*
