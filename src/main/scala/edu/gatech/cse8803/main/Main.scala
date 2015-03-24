@@ -73,6 +73,9 @@ object Main {
 
     val rawFeatures = FeatureConstruction.construct(sc, featureTuples)
 
+    
+    
+    sc.stop()
   }
 
   def loadRddRawData(sqlContext: SQLContext): (RDD[Medication], RDD[LabResult], RDD[Diagnostic]) = {
