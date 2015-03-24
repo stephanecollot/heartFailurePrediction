@@ -9,7 +9,7 @@
  
 package edu.gatech.cse8803.model
 
-case class LabResult(patientID: String, date: Long, labName: String, loincCode: String, value: String)
+case class LabResult(patientID: String, date: Long, labName: String, loincCode: String, value: Double)
 
 case class Diagnostic(patientID: String, date: Long, icd9code: String) //, sequence: Int
 

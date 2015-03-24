@@ -13,6 +13,7 @@ import java.text.SimpleDateFormat
 
 import edu.gatech.cse8803.ioutils.CSVUtils
 import edu.gatech.cse8803.model._
+import edu.gatech.cse8803.features.FeatureConstruction
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.SparkContext._  // Important
@@ -32,7 +33,7 @@ object Main {
       s.toDouble
     } 
     catch { 
-      case _ => 0.0
+      case e: Throwable => 0.0
     }
   }
 
@@ -45,10 +46,10 @@ object Main {
     val sc = createContext
     val sqlContext = new SQLContext(sc)
     
-    /** initialize loading of data */
+    /** Initialize loading of data */
     val (medication, labResult, diagnostic) = loadRddRawData(sqlContext)
     
-  
+    /** Information Display */
     var f1 = diagnostic.filter(d => (parseDouble(d.icd9code) > 390.0 && parseDouble(d.icd9code) < 495.0))
     println("heart count: "+f1.count)
     
@@ -61,6 +62,16 @@ object Main {
     
     var m1 = f1.map(d => (d.icd9code, 1)).reduceByKey{case (x1, x2) => (x1 + x2)}
     m1.foreach(println)
+    
+    
+    /** Feature construction with all features */
+    val featureTuples = sc.union(
+      FeatureConstruction.constructDiagnosticFeatureTuple(diagnostic),
+      FeatureConstruction.constructLabFeatureTuple(labResult),
+      FeatureConstruction.constructMedicationFeatureTuple(medication)
+    )
+
+    val rawFeatures = FeatureConstruction.construct(sc, featureTuples)
 
   }
 
@@ -73,8 +84,8 @@ object Main {
     println("med"+med.count())
     
     val SchemaRDDlab = CSVUtils.loadCSVAsTable(sqlContext, "data/lab_results.csv")
-    //case class LabResult(patientID: String, date: Long, labName: String, loincCode: String, value: String)
-    var lab = SchemaRDDlab.map(p => LabResult(p(1).toString, dateFormat.parse(p(2).toString).getTime(), p(7).toString, p(10).toString, p(14).toString))
+    //case class LabResult(patientID: String, date: Long, labName: String, loincCode: String, value: Double)
+    var lab = SchemaRDDlab.map(p => LabResult(p(1).toString, dateFormat.parse(p(2).toString).getTime(), p(7).toString, p(10).toString, parseDouble(p(14).toString)))
     println("lab"+lab.count())
     
     val SchemaRDDenc = CSVUtils.loadCSVAsTable(sqlContext, "data/encounter.csv")
