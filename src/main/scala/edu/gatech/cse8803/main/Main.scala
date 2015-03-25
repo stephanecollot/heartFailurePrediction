@@ -62,13 +62,47 @@ object Main {
     
     var m1 = f1.map(d => (d.icd9code, 1)).reduceByKey{case (x1, x2) => (x1 + x2)}
     m1.foreach(println)
-    
-    
+        
     /** Feature construction with all features */
+    var targetCode = "428.0" //(428.0,91) Congestive heart failure, unspecified
+    // Remove all event after this first diag
+    var patientDate = diagnostic.filter(d => (d.icd9code == targetCode))
+                                .map(d => (d.patientID, d.date)) // (patientID, date)
+                                .reduceByKey( Math.min(_,_))     // (patientID, maxDate)
+                                
+    var diagnosticF = diagnostic.map(d => (d.patientID, d))  // (patientID, diag)
+                                .leftOuterJoin(patientDate)  // (patientID, (diag, maxDate)) or (diag, None)
+                                .filter(d => d._2._2 match {case Some(value) =>
+                                                              (d._2._1.date < value)
+                                                            case None =>
+                                                              true
+                                                           })
+                                .map(d => d._2._1)
+     
+    var labResultF = labResult.map(d => (d.patientID, d))  // (patientID, lab)
+                              .leftOuterJoin(patientDate)  // (patientID, (lab, maxDate)) or (lab, None)
+                              .filter(d => d._2._2 match {case Some(value) =>
+                                                            (d._2._1.date < value)
+                                                          case None =>
+                                                            true
+                                                         })
+                              .map(d => d._2._1)
+     
+    var medicationF = medication.map(d => (d.patientID, d))  // (patientID, med)
+                                .leftOuterJoin(patientDate)  // (patientID, (med, maxDate)) or (med, None)
+                                .filter(d => d._2._2 match {case Some(value) =>
+                                                              (d._2._1.date < value)
+                                                            case None =>
+                                                              true
+                                                           })
+                                .map(d => d._2._1)
+                                
+    println("FILTERED lab: "+labResultF.count()+"  diag: "+diagnosticF.count()+"  med: "+medicationF.count())
+    
     val featureTuples = sc.union(
-      FeatureConstruction.constructDiagnosticFeatureTuple(diagnostic),
-      FeatureConstruction.constructLabFeatureTuple(labResult),
-      FeatureConstruction.constructMedicationFeatureTuple(medication)
+      FeatureConstruction.constructDiagnosticFeatureTuple(diagnosticF),
+      FeatureConstruction.constructLabFeatureTuple(labResultF),
+      FeatureConstruction.constructMedicationFeatureTuple(medicationF)
     )
 
     val rawFeatures = FeatureConstruction.construct(sc, featureTuples)
