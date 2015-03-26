@@ -27,6 +27,7 @@ import org.apache.log4j.Logger
 import org.apache.log4j.Level
 
 object Main {
+  var arguments = Array[String]()
 
   def parseDouble(s: String) = {
     try {
@@ -42,6 +43,10 @@ object Main {
     //Change log level
     Logger.getLogger("org").setLevel(Level.WARN)
     Logger.getLogger("akka").setLevel(Level.WARN)
+    
+    println("Arguments: ")
+    args.foreach(println)
+    arguments = args
     
     val sc = createContext
     val sqlContext = new SQLContext(sc)
@@ -115,22 +120,26 @@ object Main {
   def loadRddRawData(sqlContext: SQLContext): (RDD[Medication], RDD[LabResult], RDD[Diagnostic]) = {
     val dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX") //dateFormat.parse()
     
-    val SchemaRDDmed = CSVUtils.loadCSVAsTable(sqlContext, "data/medication_fulfillment.csv")
+    var path = "data/"
+    if (arguments.contains("big"))
+      path = "data/GeorgiaTech_DS1_CSV/"
+    
+    val SchemaRDDmed = CSVUtils.loadCSVAsTable(sqlContext, path+"medication_fulfillment.csv")
     //case class Medication(patientID: String, date: Long, medicine: String)
     var med = SchemaRDDmed.map(p => Medication(p(2).toString, dateFormat.parse(p(6).toString).getTime(), p(7).toString))
     println("med"+med.count())
     
-    val SchemaRDDlab = CSVUtils.loadCSVAsTable(sqlContext, "data/lab_results.csv")
+    val SchemaRDDlab = CSVUtils.loadCSVAsTable(sqlContext, path+"lab_results.csv")
     //case class LabResult(patientID: String, date: Long, labName: String, loincCode: String, value: Double)
     var lab = SchemaRDDlab.map(p => LabResult(p(1).toString, dateFormat.parse(p(2).toString).getTime(), p(7).toString, p(10).toString, parseDouble(p(14).toString)))
     println("lab"+lab.count())
     
-    val SchemaRDDenc = CSVUtils.loadCSVAsTable(sqlContext, "data/encounter.csv")
+    val SchemaRDDenc = CSVUtils.loadCSVAsTable(sqlContext, path+"encounter.csv")
     // (encounterID: String, (patientID: String, date: Long))
     var enc = SchemaRDDenc.map(p => (p(1).toString, (p(2).toString, dateFormat.parse(p(6).toString).getTime())))
     println("enc"+enc.count())
     
-    val SchemaRDDencDX = CSVUtils.loadCSVAsTable(sqlContext, "data/encounter_dx.csv")
+    val SchemaRDDencDX = CSVUtils.loadCSVAsTable(sqlContext, path+"encounter_dx.csv")
     //(encounterID: String, icd9code: String)
     var encDx = SchemaRDDencDX.map(p => (p(5).toString, p(1).toString))
     println("encDx"+encDx.count())
