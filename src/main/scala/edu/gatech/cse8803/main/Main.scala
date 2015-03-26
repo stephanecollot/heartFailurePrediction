@@ -71,7 +71,7 @@ object Main {
     /** Feature construction with all features */
     var targetCode = "428.0" //(428.0,91) Congestive heart failure, unspecified
     // Remove all event after this first diag
-    var patientDate = diagnostic.filter(d => (d.icd9code == targetCode))
+    var patientDate = diagnostic.filter(d => (d.icd9code == targetCode)) // this constains only label=1 patient
                                 .map(d => (d.patientID, d.date)) // (patientID, date)
                                 .reduceByKey( Math.min(_,_))     // (patientID, maxDate)
                                 
@@ -109,9 +109,19 @@ object Main {
       FeatureConstruction.constructLabFeatureTuple(labResultF),
       FeatureConstruction.constructMedicationFeatureTuple(medicationF)
     )
-
     val rawFeatures = FeatureConstruction.construct(sc, featureTuples)
 
+    // Create (patientID, label, vector)
+    var patient1 = patientDate.map(p => (p._1, 1)) // (patientID, 1)
+    var patientAll = diagnostic.map(p => (p.patientID, 0)) // (patientID, 0)
+    var patientLabel = patientAll.union(patient1).reduceByKey( Math.max(_,_)) // (patientID, label)
+    println("number of patient: " + patientLabel.count)
+    
+    var inputClassifier = patientLabel.join(rawFeatures).map(p => (p._1, p._2._1, p._2._2)) // (patientID, label, vector)
+    println("inputClassifier.take(5):")
+    inputClassifier.take(5).toList.foreach(println)
+    
+    
     
     
     sc.stop()
