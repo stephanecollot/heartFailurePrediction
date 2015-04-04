@@ -121,7 +121,7 @@ object Main {
     println("inputClassifier.take(5):")
     inputClassifier.take(5).toList.foreach(println)
     
-    
+    var bestModel = CrossValidation.crossValidate(inputClassifier) 
     
     
     sc.stop()
