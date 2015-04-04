@@ -104,13 +104,23 @@ object Main {
                                                               true
                                                            })
                                 .map(d => d._2._1)
+     
+    var vitalF = vital.map(d => (d.patientID, d))  // (patientID, vital)
+                      .leftOuterJoin(patientDate)  // (patientID, (vital, maxDate)) or (vital, None)
+                      .filter(d => d._2._2 match {case Some(value) =>
+                                                    (d._2._1.date < value)
+                                                  case None =>
+                                                    true
+                                                 })
+                      .map(d => d._2._1)
                                 
-    println("FILTERED lab: "+labResultF.count()+"  diag: "+diagnosticF.count()+"  med: "+medicationF.count())
+    println("FILTERED lab: "+labResultF.count()+"  diag: "+diagnosticF.count()+"  med: "+medicationF.count()+"  vital: "+vitalF.count())
     
     val featureTuples = sc.union(
       FeatureConstruction.constructDiagnosticFeatureTuple(diagnosticF),
       FeatureConstruction.constructLabFeatureTuple(labResultF),
-      FeatureConstruction.constructMedicationFeatureTuple(medicationF)
+      FeatureConstruction.constructMedicationFeatureTuple(medicationF),
+      FeatureConstruction.constructVitalFeatureTuple(vitalF)
     )
     val rawFeatures = FeatureConstruction.construct(sc, featureTuples)
 
@@ -184,8 +194,8 @@ object Main {
     var diag = enc.join(encDx).map(p => Diagnostic(p._2._1._1, p._2._1._2, p._2._2))
     
     val SchemaRDDvital = CSVUtils.loadCSVAsTable(sqlContext, path+"vital_sign.csv")
-    //case class Vital(patientID: String, date: Long, Height: Int, SystolicBP: Int, DiastolicBP: Int, Pulse: Int, Respiration: Int, Temperature: Int)
-    var vital = SchemaRDDvital.map(p => Vital(p(1).toString, dateFormat.parse(p(2).toString).getTime(), p(3).toString.toInt, p(5).toString.toInt, p(7).toString.toInt, p(8).toString.toInt, p(9).toString.toInt, p(10).toString.toInt, p(11).toString.toInt))
+    //case class Vital(patientID: String, date: Long, Height: Double, Weight: Double, SystolicBP: Double, DiastolicBP: Double, Pulse: Double, Respiration: Double, Temperature: Double)
+    var vital = SchemaRDDvital.map(p => Vital(p(1).toString, dateFormat.parse(p(2).toString).getTime(), parseDouble(p(3).toString), parseDouble(p(5).toString), parseDouble(p(7).toString), parseDouble(p(8).toString), parseDouble(p(9).toString), parseDouble(p(10).toString), parseDouble(p(11).toString)))
      
     println("lab: "+lab.count()+"  diag: "+diag.count()+"  med: "+med.count()+"  vital: "+vital.count())
   
