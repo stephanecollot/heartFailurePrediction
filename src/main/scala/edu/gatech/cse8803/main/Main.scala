@@ -55,7 +55,7 @@ object Main {
     val sqlContext = new SQLContext(sc)
     
     /** Initialize loading of data */
-    val (medication, labResult, diagnostic) = loadRddRawData(sqlContext)
+    val (medication, labResult, diagnostic, vital) = loadRddRawData(sqlContext)
     
     /** Information Display */
     var f1 = diagnostic.filter(d => (parseDouble(d.icd9code) > 390.0 && parseDouble(d.icd9code) < 495.0))
@@ -147,7 +147,7 @@ object Main {
     sc.stop()
   }
 
-  def loadRddRawData(sqlContext: SQLContext): (RDD[Medication], RDD[LabResult], RDD[Diagnostic]) = {
+  def loadRddRawData(sqlContext: SQLContext): (RDD[Medication], RDD[LabResult], RDD[Diagnostic], RDD[Vital]) = {
     val dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX") //dateFormat.parse()
     
     var path = "data/"
@@ -176,11 +176,17 @@ object Main {
     
     //case class Diagnostic(patientID: String, date: Long, icd9code: String)
     var diag = enc.join(encDx).map(p => Diagnostic(p._2._1._1, p._2._1._2, p._2._2))
+    
+    val SchemaRDDvitalSign = CSVUtils.loadCSVAsTable(sqlContext, path+"vital_sign.csv")
+    //(encounterID: String, icd9code: String)
+    var vital = SchemaRDDvitalSign.map(p => (p(5).toString, p(1).toString))
+    println("vital"+encDx.count())
+    
   
-    println("lab: "+lab.count()+"  diag: "+diag.count()+"  med: "+med.count())
+    println("lab: "+lab.count()+"  diag: "+diag.count()+"  med: "+med.count()+"  vital: "+vital.count())
     //lab:   diag:   med:  
   
-    (med, lab, diag)
+    (med, lab, diag, vital)
   }
 
   def createContext(appName: String, masterUrl: String): SparkContext = {
