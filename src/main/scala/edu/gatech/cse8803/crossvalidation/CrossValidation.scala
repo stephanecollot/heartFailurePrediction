@@ -108,12 +108,3 @@ object CrossValidation {
     sc.stop()
   }
 }
-  def createContext(appName: String, masterUrl: String): SparkContext = {
-    val conf = new SparkConf().setAppName(appName).setMaster(masterUrl)
-    new SparkContext(conf)
-  }
-
-  def createContext(appName: String): SparkContext = createContext(appName, "local")
-
-  def createContext: SparkContext = createContext("CSE 8803 Project", "local")
-}
