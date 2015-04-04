@@ -183,14 +183,11 @@ object Main {
     //case class Diagnostic(patientID: String, date: Long, icd9code: String)
     var diag = enc.join(encDx).map(p => Diagnostic(p._2._1._1, p._2._1._2, p._2._2))
     
-    val SchemaRDDvitalSign = CSVUtils.loadCSVAsTable(sqlContext, path+"vital_sign.csv")
-    //(encounterID: String, icd9code: String)
-    var vital = SchemaRDDvitalSign.map(p => (p(5).toString, p(1).toString))
-    println("vital"+encDx.count())
-    
-  
+    val SchemaRDDvital = CSVUtils.loadCSVAsTable(sqlContext, path+"vital_sign.csv")
+    //case class Vital(patientID: String, date: Long, Height: Int, SystolicBP: Int, DiastolicBP: Int, Pulse: Int, Respiration: Int, Temperature: Int)
+    var vital = SchemaRDDvital.map(p => Vital(p(1).toString, dateFormat.parse(p(2).toString).getTime(), p(3).toString.toInt, p(5).toString.toInt, p(7).toString.toInt, p(8).toString.toInt, p(9).toString.toInt, p(10).toString.toInt, p(11).toString.toInt))
+     
     println("lab: "+lab.count()+"  diag: "+diag.count()+"  med: "+med.count()+"  vital: "+vital.count())
-    //lab:   diag:   med:  
   
     (med, lab, diag, vital)
   }

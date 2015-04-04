@@ -8,7 +8,7 @@
  */
 package edu.gatech.cse8803.features
 
-import edu.gatech.cse8803.model.{LabResult, Medication, Diagnostic}
+import edu.gatech.cse8803.model._
 import org.apache.spark.SparkContext
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
 import org.apache.spark.rdd.RDD
@@ -51,6 +51,15 @@ object FeatureConstruction {
    */
   def constructLabFeatureTuple(labResult: RDD[LabResult]): RDD[FeatureTuple] = {
     constructLabFeatureTuple(labResult, Set())
+  }
+  
+  /** 1.4
+   * Aggregate feature tuples from vital data, using AVERAGE aggregation
+   * @param vital RDD of vital
+   * @return RDD of feature tuples
+   */
+  def constructVitalFeatureTuple(vital: RDD[Vital]): RDD[FeatureTuple] = {
+    constructVitalFeatureTuple(vital, Set())
   }
 
   /** 2.1
@@ -111,6 +120,28 @@ object FeatureConstruction {
     println("2.3 LabResult "+ {if(debug contains "1") map.count+"  dim: "+map.map(p=> p._1._2).distinct.count})
     map
   }
+  
+  /** 2.4
+   * Aggregate feature tuples 
+   * @param vital RDD
+   * @param candidate set of candidate vital sign -- TODO if needed
+   * @return RDD of feature tuples
+   */
+  def constructVitalFeatureTuple(vital: RDD[Vital], candidate: Set[String]): RDD[FeatureTuple] = {
+  
+    var vit = vital
+    //if(!candidate.isEmpty)
+        //vit = vital.filter(p => candidate.contains(p.labName))
+        
+    var map = vit.map(p=> ((p.patientID, "Weight"), p.Weight))
+                 .mapValues(v=> (v, 1.0))
+                 .reduceByKey((x, y) => (x._1 + y._1, x._2 + y._2))
+                 .map(p => (p._1, p._2._1 / p._2._2))
+    
+    println("2.4 Vital "+ {if(debug contains "1") map.count+"  dim: "+map.map(p=> p._1._2).distinct.count})
+    map
+  }
+
 
 
   /**
