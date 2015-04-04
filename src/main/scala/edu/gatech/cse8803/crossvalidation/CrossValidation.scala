@@ -38,7 +38,7 @@ import org.apache.spark.sql.{Row, SQLContext}
 
 object CrossValidation {
 
-  def crossValidate(data: RDD[DataSet]) {
+  /*def crossValidate(data: RDD[DataSet]) {
     val conf = new SparkConf().setAppName("CrossValidatorExample")
     val sc = new SparkContext(conf)
     val sqlContext = new SQLContext(sc)
@@ -106,5 +106,5 @@ object CrossValidation {
     }
 
     sc.stop()
-  }
+  }*/
 }
