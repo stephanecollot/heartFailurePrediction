@@ -124,6 +124,7 @@ object Main {
     println("inputClassifier.take(5):")
     inputClassifier.take(5).toList.foreach(println)
     
+
     //Classification
     println("Doing classification")
     
@@ -140,9 +141,14 @@ object Main {
 		val prediction = model.predict(point.features)
 		(point.label, prediction)
 	}
+
     
     val trainErr = labelAndPreds.filter(r => r._1 != r._2).count.toDouble / testing.count
 	println("Training Error = " + trainErr)
+
+
+
+    var bestModel = CrossValidation.crossValidate(inputClassifier) 
     
     sc.stop()
   }
