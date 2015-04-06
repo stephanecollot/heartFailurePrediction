@@ -55,7 +55,7 @@ object Main {
     val sqlContext = new SQLContext(sc)
     
     /** Initialize loading of data */
-    val (medication, labResult, diagnostic) = loadRddRawData(sqlContext)
+    val (medication, labResult, diagnostic, vital) = loadRddRawData(sqlContext)
     
     /** Information Display */
     var f1 = diagnostic.filter(d => (parseDouble(d.icd9code) > 390.0 && parseDouble(d.icd9code) < 495.0))
@@ -104,13 +104,23 @@ object Main {
                                                               true
                                                            })
                                 .map(d => d._2._1)
+     
+    var vitalF = vital.map(d => (d.patientID, d))  // (patientID, vital)
+                      .leftOuterJoin(patientDate)  // (patientID, (vital, maxDate)) or (vital, None)
+                      .filter(d => d._2._2 match {case Some(value) =>
+                                                    (d._2._1.date < value)
+                                                  case None =>
+                                                    true
+                                                 })
+                      .map(d => d._2._1)
                                 
-    println("FILTERED lab: "+labResultF.count()+"  diag: "+diagnosticF.count()+"  med: "+medicationF.count())
+    println("FILTERED lab: "+labResultF.count()+"  diag: "+diagnosticF.count()+"  med: "+medicationF.count()+"  vital: "+vitalF.count())
     
     val featureTuples = sc.union(
       FeatureConstruction.constructDiagnosticFeatureTuple(diagnosticF),
       FeatureConstruction.constructLabFeatureTuple(labResultF),
-      FeatureConstruction.constructMedicationFeatureTuple(medicationF)
+      FeatureConstruction.constructMedicationFeatureTuple(medicationF),
+      FeatureConstruction.constructVitalFeatureTuple(vitalF)
     )
     val rawFeatures = FeatureConstruction.construct(sc, featureTuples)
 
@@ -124,6 +134,7 @@ object Main {
     println("inputClassifier.take(5):")
     inputClassifier.take(5).toList.foreach(println)
     
+
     //Classification
     println("Doing classification")
     
@@ -140,14 +151,19 @@ object Main {
 		val prediction = model.predict(point.features)
 		(point.label, prediction)
 	}
+
     
     val trainErr = labelAndPreds.filter(r => r._1 != r._2).count.toDouble / testing.count
 	println("Training Error = " + trainErr)
+
+
+
+    //var bestModel = CrossValidation.crossValidate(inputClassifier) 
     
     sc.stop()
   }
 
-  def loadRddRawData(sqlContext: SQLContext): (RDD[Medication], RDD[LabResult], RDD[Diagnostic]) = {
+  def loadRddRawData(sqlContext: SQLContext): (RDD[Medication], RDD[LabResult], RDD[Diagnostic], RDD[Vital]) = {
     val dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX") //dateFormat.parse()
     
     var path = "data/"
@@ -176,11 +192,14 @@ object Main {
     
     //case class Diagnostic(patientID: String, date: Long, icd9code: String)
     var diag = enc.join(encDx).map(p => Diagnostic(p._2._1._1, p._2._1._2, p._2._2))
+    
+    val SchemaRDDvital = CSVUtils.loadCSVAsTable(sqlContext, path+"vital_sign.csv")
+    //case class Vital(patientID: String, date: Long, Height: Double, Weight: Double, SystolicBP: Double, DiastolicBP: Double, Pulse: Double, Respiration: Double, Temperature: Double)
+    var vital = SchemaRDDvital.map(p => Vital(p(1).toString, dateFormat.parse(p(2).toString).getTime(), parseDouble(p(3).toString), parseDouble(p(5).toString), parseDouble(p(7).toString), parseDouble(p(8).toString), parseDouble(p(9).toString), parseDouble(p(10).toString), parseDouble(p(11).toString)))
+     
+    println("lab: "+lab.count()+"  diag: "+diag.count()+"  med: "+med.count()+"  vital: "+vital.count())
   
-    println("lab: "+lab.count()+"  diag: "+diag.count()+"  med: "+med.count())
-    //lab:   diag:   med:  
-  
-    (med, lab, diag)
+    (med, lab, diag, vital)
   }
 
   def createContext(appName: String, masterUrl: String): SparkContext = {
