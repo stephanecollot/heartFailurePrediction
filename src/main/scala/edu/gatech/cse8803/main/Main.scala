@@ -14,6 +14,7 @@ import java.text.SimpleDateFormat
 import edu.gatech.cse8803.ioutils.CSVUtils
 import edu.gatech.cse8803.model._
 import edu.gatech.cse8803.features.FeatureConstruction
+import edu.gatech.cse8803.classification.Classification
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SQLContext
 import org.apache.spark.SparkContext._  // Important
@@ -25,9 +26,6 @@ import java.text.SimpleDateFormat
 //Change log level
 import org.apache.log4j.Logger
 import org.apache.log4j.Level
-
-import org.apache.spark.mllib.classification._
-import org.apache.spark.mllib.regression.LabeledPoint
 
 object Main {
   var arguments = Array[String]()
@@ -136,25 +134,7 @@ object Main {
     
 
     //Classification
-    println("Doing classification")
-    
-    val labeled = inputClassifier.map(x => new LabeledPoint(x._2, x._3))
-     
-    val testing = labeled.sample(false, 0.5, 45897)
-    val training = labeled.subtract(testing)
-    println("testing set size: " + testing.count())
-    println("training set size: " + training.count())
-    
-    val model = LogisticRegressionWithSGD.train(training, 20)
-    
-    val labelAndPreds = testing.map { point =>
-		val prediction = model.predict(point.features)
-		(point.label, prediction)
-	}
-
-    
-    val trainErr = labelAndPreds.filter(r => r._1 != r._2).count.toDouble / testing.count
-	println("Training Error = " + trainErr)
+    Classification.classify(inputClassifier)
 
 
 
