@@ -40,6 +40,40 @@ object Main {
       case e: Throwable => 0.0
     }
   }
+  
+  def convertHeight(v: Double, u: String): Double = {
+    if (u=="cm")
+      v/100
+    else if (u=="in")
+      v/39.370
+    else {
+      println("UNKOWN UNIT:"+u)
+      0.0
+    }
+  }
+  
+  def convertWeight(v: Double, u: String): Double = {
+    if (u=="kg")
+      v
+    else if (u=="lbs")
+      v/2.20462262185
+    else {
+      println("UNKOWN UNIT:"+u)
+      0.0
+    }
+  }
+  
+  def BMI(height: Double, heightUnit: String, weight: Double, weightUnit: String): Double = {
+    val h = convertHeight(height, heightUnit)
+    val w = convertWeight(weight, weightUnit)
+    
+    var value = 0.0
+    if (h!=0.0)
+      value = w/(h*h)
+      
+    //println("BMI value: "+value)
+    value
+  }
 
   def main(args: Array[String]) {
   
@@ -194,8 +228,8 @@ object Main {
     var diag = enc.join(encDx).map(p => Diagnostic(p._2._1._1, p._2._1._2, p._2._2))
     
     val SchemaRDDvital = CSVUtils.loadCSVAsTable(sqlContext, path+"vital_sign.csv")
-    //case class Vital(patientID: String, date: Long, Height: Double, Weight: Double, SystolicBP: Double, DiastolicBP: Double, Pulse: Double, Respiration: Double, Temperature: Double)
-    var vital = SchemaRDDvital.map(p => Vital(p(1).toString, dateFormat.parse(p(2).toString).getTime(), parseDouble(p(3).toString), parseDouble(p(5).toString), parseDouble(p(7).toString), parseDouble(p(8).toString), parseDouble(p(9).toString), parseDouble(p(10).toString), parseDouble(p(11).toString)))
+    //case class Vital(patientID: String, date: Long, Height: Double, Weight: Double, SystolicBP: Double, DiastolicBP: Double, Pulse: Double, Respiration: Double, Temperature: Double, BMI: Double)
+    var vital = SchemaRDDvital.map(p => Vital(p(1).toString, dateFormat.parse(p(2).toString).getTime(), convertHeight(parseDouble(p(3).toString), p(4).toString), convertWeight(parseDouble(p(5).toString), p(6).toString), parseDouble(p(7).toString), parseDouble(p(8).toString), parseDouble(p(9).toString), parseDouble(p(10).toString), parseDouble(p(11).toString), BMI(parseDouble(p(3).toString),p(4).toString,parseDouble(p(5).toString),p(6).toString)))
      
     println("lab: "+lab.count()+"  diag: "+diag.count()+"  med: "+med.count()+"  vital: "+vital.count())
   

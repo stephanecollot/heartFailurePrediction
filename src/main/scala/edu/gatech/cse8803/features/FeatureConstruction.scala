@@ -133,7 +133,7 @@ object FeatureConstruction {
     //if(!candidate.isEmpty)
         //vit = vital.filter(p => candidate.contains(p.labName))
         
-    var map = vit.map(p=> ((p.patientID, "Weight"), p.Weight))
+    var map = vit.map(p=> ((p.patientID, "BMI"), p.BMI))
                  .mapValues(v=> (v, 1.0))
                  .reduceByKey((x, y) => (x._1 + y._1, x._2 + y._2))
                  .map(p => (p._1, p._2._1 / p._2._2))
