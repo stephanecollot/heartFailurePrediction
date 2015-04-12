@@ -60,7 +60,7 @@ object CrossValidation {
 		
 		val fractionInTestingSet = 0.2
 		
-		val testingCase = casePatients.sample(false, fractionInTestingSet, 12345).cache()
+		/*val testingCase = casePatients.sample(false, fractionInTestingSet, 12345).cache()
 		val testingCaseSize = testingCase.count()
 		val trainingCase = casePatients.subtract(testingCase).cache()
 		val trainingCaseSize = trainingCase.count()
@@ -68,8 +68,16 @@ object CrossValidation {
 		println("Number of case patients in testing set: " + testingCaseSize)
 		
 		val trainingSet = trainingCase.union(notCasePatients.sample(false, trainingCaseSize.toDouble / nbrNotCasePatients, 12345))
-		val testingSet = testingCase.union(notCasePatients.sample(false, (testingCaseSize.toDouble + 1.0) / nbrNotCasePatients, 54321))
-		
+		val testingSet = testingCase.union(notCasePatients.sample(false, (testingCaseSize.toDouble + 1.0) / nbrNotCasePatients, 54321))*/
+
+                /*val trainingSet = data.sample(false, 0.7) 
+		val testingSet = data.sample(false, 0.3)*/
+
+		val splits = data.randomSplit(Array(0.6, 0.4), seed = System.currentTimeMillis().toInt)
+		val trainingSet = splits(0)
+		val testingSet = splits(1)
+
+
 		println("Training set size: " + trainingSet.count)
 		println("Testing set size: " + testingSet.count)
 		
@@ -104,7 +112,7 @@ object CrossValidation {
       .addGrid(lr.regParam, Array(0.1, 0.01))
       .build()
     crossval.setEstimatorParamMaps(paramGrid)
-    crossval.setNumFolds(2) // Use 3+ in practice
+    crossval.setNumFolds(10) // Use 3+ in practice
 
     // Run cross-validation, and choose the best set of parameters.
     val cvModel = crossval.fit(trainingSet.toDF())
@@ -120,7 +128,7 @@ object CrossValidation {
 	
 	val labeled = testingSet.map(x => (x.patientID, x.label))
 	
-	val labelAndPreds = results.join(labeled) // (PatientID, (prediction, label))
+	val labelAndPreds = results.join(labeled)
 	
 	val trainErr = labelAndPreds.filter(r => r._2._1 != r._2._2).count.toDouble / testingSet.count
 		println("Training Error = " + trainErr)
