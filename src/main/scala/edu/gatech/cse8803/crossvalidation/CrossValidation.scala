@@ -40,27 +40,11 @@ import org.apache.spark.ml.feature.FeatureTransformer
 
 object CrossValidation {
 
-  def crossValidate(data: RDD[DataSet], sc:SparkContext, sqlContext : SQLContext) {
+  def crossValidate(data: RDD[DataSet], sc:SparkContext, sqlContext : SQLContext): Double = {
     /*val conf = new SparkConf().setAppName("CrossValidatorExample")
     val sc = new SparkContext(conf)
     val sqlContext = new SQLContext(sc)*/
     import sqlContext.implicits._
-
-    // Prepare training documents, which are labeled.
-    /*val training = sc.parallelize(Seq(
-      LabeledDocument(0L, "a b c d e spark", 1.0),
-      LabeledDocument(1L, "b d", 0.0),
-      LabeledDocument(2L, "spark f g h", 1.0),
-      LabeledDocument(3L, "hadoop mapreduce", 0.0),
-      LabeledDocument(4L, "b spark who", 1.0),
-      LabeledDocument(5L, "g d a y", 0.0),
-      LabeledDocument(6L, "spark fly", 1.0),
-      LabeledDocument(7L, "was mapreduce", 0.0),
-      LabeledDocument(8L, "e spark program", 1.0),
-      LabeledDocument(9L, "a e c l", 0.0),
-      LabeledDocument(10L, "spark compile", 1.0),
-      LabeledDocument(11L, "hadoop software", 0.0)))*/
-	  
 	  
 	  
 	  //val labeled = data.map(x => new LabeledPoint(x._2, x._3))
@@ -69,7 +53,7 @@ object CrossValidation {
 		val casePatients = data.filter(x => x.label == 1)
 		val nbrCasePatients = casePatients.count()
 		println("Number of case patients: " + nbrCasePatients)
-		val notCasePatients = data.filter(x => x.label ==0)
+		val notCasePatients = data.filter(x => x.label == 0)
 		val nbrNotCasePatients = notCasePatients.count()
 		println("Number of not case patients: " + nbrNotCasePatients)
 		
@@ -124,24 +108,25 @@ object CrossValidation {
     // Run cross-validation, and choose the best set of parameters.
     val cvModel = crossval.fit(trainingSet.toDF())
 
-    // Prepare test documents, which are unlabeled.
-    /*val test = sc.parallelize(Seq(
-      Document(4L, "spark i j k"),
-      Document(5L, "l m n"),
-      Document(6L, "mapreduce spark"),
-      Document(7L, "apache hadoop")))*/
-	  
-	  
-	  
+
 
     // Make predictions on test documents. cvModel uses the best model found (lrModel).
-    cvModel.transform(testingSet.toDF())
-      .select("patientID", "probability", "prediction")
-      .collect()
-      .foreach { case Row(patientID: Long, prob: Vector, prediction: Double) =>
+    val results = cvModel.transform(testingSet.toDF())
+      .select("patientID", "prediction")
+	  .map({case Row(patientID: String, prediction: Int) => (patientID.toString,prediction.toInt)})
+	  
+      /*.foreach { case Row(patientID: Long, prob: Vector, prediction: Double) =>
       println(s"($patientID) --> prob=$prob, prediction=$prediction")
-    }
-
+    }*/
+	
+	val labeled = testingSet.map(x => (x.patientID, x.label))
+	
+	val labelAndPreds = results.join(labeled)
+	
+	val trainErr = labelAndPreds.filter(r => r._2._1 != r._2._2).count.toDouble / testingSet.count
+		println("Training Error = " + trainErr)
+	
+	trainErr
     //sc.stop()
   }
 }

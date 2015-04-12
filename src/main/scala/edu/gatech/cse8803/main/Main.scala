@@ -20,6 +20,8 @@ import org.apache.spark.sql.SQLContext
 import org.apache.spark.SparkContext._  // Important
 import org.apache.spark.{SparkConf, SparkContext}
 
+import edu.gatech.cse8803.CrossValidation.CrossValidation
+
 import scala.io.Source
 import java.text.SimpleDateFormat
 
@@ -162,7 +164,7 @@ object Main {
     var patientLabel = patientAll.union(patient1).reduceByKey( Math.max(_,_)) // (patientID, label)
     println("number of patient: " + patientLabel.count)
     
-    var inputClassifier = patientLabel.join(rawFeatures).map(p => (p._1, p._2._1, p._2._2)) // (patientID, label, vector)
+    var inputClassifier = patientLabel.join(rawFeatures).map(p => DataSet(p._1, p._2._1, p._2._2)) // (patientID, label, vector)
     println("inputClassifier.take(5):")
     inputClassifier.take(5).toList.foreach(println)
     
@@ -172,8 +174,8 @@ object Main {
 
 
 
-    //var bestModel = CrossValidation.crossValidate(inputClassifier,sc,sqlContext) 
-    
+    var err = CrossValidation.crossValidate(inputClassifier,sc,sqlContext) 
+    println("Done")
     sc.stop()
   }
 
