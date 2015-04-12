@@ -112,7 +112,7 @@ object CrossValidation {
     // Make predictions on test documents. cvModel uses the best model found (lrModel).
     val results = cvModel.transform(testingSet.toDF())
       .select("patientID", "prediction")
-	  .map({case Row(patientID: String, prediction: Int) => (patientID.toString,prediction.toInt)})
+	  .map({case Row(patientID: String, prediction: Double) => (patientID.toString,prediction.toDouble)})
 	  
       /*.foreach { case Row(patientID: Long, prob: Vector, prediction: Double) =>
       println(s"($patientID) --> prob=$prob, prediction=$prediction")
