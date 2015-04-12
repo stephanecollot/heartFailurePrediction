@@ -151,10 +151,10 @@ object Main {
     println("FILTERED lab: "+labResultF.count()+"  diag: "+diagnosticF.count()+"  med: "+medicationF.count()+"  vital: "+vitalF.count())
     
     val featureTuples = sc.union(
-      FeatureConstruction.constructDiagnosticFeatureTuple(diagnosticF),
-      FeatureConstruction.constructLabFeatureTuple(labResultF),
-      FeatureConstruction.constructMedicationFeatureTuple(medicationF),
-      FeatureConstruction.constructVitalFeatureTuple(vitalF)
+      FeatureConstruction.constructDiagnosticFeatureTuple(diagnosticF), // -> 0.9941176470588236
+      FeatureConstruction.constructLabFeatureTuple(labResultF), //-> 0.956985294117647
+      FeatureConstruction.constructMedicationFeatureTuple(medicationF), // -> 0.988235294117647
+      FeatureConstruction.constructVitalFeatureTuple(vitalF) // -> 0.5
     )
     val rawFeatures = FeatureConstruction.construct(sc, featureTuples)
 
@@ -188,22 +188,31 @@ object Main {
     val SchemaRDDmed = CSVUtils.loadCSVAsTable(sqlContext, path+"medication_fulfillment.csv")
     //case class Medication(patientID: String, date: Long, medicine: String)
     var med = SchemaRDDmed.map(p => Medication(p(2).toString, dateFormat.parse(p(6).toString).getTime(), p(7).toString))
-    println("med"+med.count())
+    println("med: "+med.count())
     
     val SchemaRDDlab = CSVUtils.loadCSVAsTable(sqlContext, path+"lab_results.csv")
     //case class LabResult(patientID: String, date: Long, labName: String, loincCode: String, value: Double)
     var lab = SchemaRDDlab.map(p => LabResult(p(1).toString, dateFormat.parse(p(2).toString).getTime(), p(7).toString, p(10).toString, parseDouble(p(14).toString)))
-    println("lab"+lab.count())
+    println("lab: "+lab.count())
     
-    val SchemaRDDenc = CSVUtils.loadCSVAsTable(sqlContext, path+"encounter.csv")
-    // (encounterID: String, (patientID: String, date: Long))
-    var enc = SchemaRDDenc.map(p => (p(1).toString, (p(2).toString, dateFormat.parse(p(6).toString).getTime())))
-    println("enc"+enc.count())
+    var enc : RDD[(String, (String, Long))] = null ;
+    if (arguments.contains("out")) {
+      val SchemaRDDencOut = CSVUtils.loadCSVAsTable(sqlContext, path+"encounter_outpatient.csv")
+      // (encounterID: String, (patientID: String, date: Long))
+      enc = SchemaRDDencOut.map(p => (p(1).toString, (p(2).toString, dateFormat.parse(p(5).toString).getTime())))
+      println("encOut: "+enc.count())
+    }
+    else {
+      val SchemaRDDenc = CSVUtils.loadCSVAsTable(sqlContext, path+"encounter.csv")
+      // (encounterID: String, (patientID: String, date: Long))
+      enc = SchemaRDDenc.map(p => (p(1).toString, (p(2).toString, dateFormat.parse(p(6).toString).getTime())))
+      println("enc: "+enc.count())
+    }
     
     val SchemaRDDencDX = CSVUtils.loadCSVAsTable(sqlContext, path+"encounter_dx.csv")
     //(encounterID: String, icd9code: String)
     var encDx = SchemaRDDencDX.map(p => (p(5).toString, p(1).toString))
-    println("encDx"+encDx.count())
+    println("encDx: "+encDx.count())
     
     //case class Diagnostic(patientID: String, date: Long, icd9code: String)
     var diag = enc.join(encDx).map(p => Diagnostic(p._2._1._1, p._2._1._2, p._2._2))
