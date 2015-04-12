@@ -172,7 +172,7 @@ object Main {
 
 
 
-    //var bestModel = CrossValidation.crossValidate(inputClassifier) 
+    //var bestModel = CrossValidation.crossValidate(inputClassifier,sc,sqlContext) 
     
     sc.stop()
   }

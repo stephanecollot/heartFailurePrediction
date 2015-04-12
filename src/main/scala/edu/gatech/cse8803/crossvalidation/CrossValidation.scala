@@ -7,7 +7,7 @@
  * @author Yannick Le Cacheux <yannick.lecacheux@gatech.edu>
  */
 
-package edu.gatech.cse8803.main
+package edu.gatech.cse8803.CrossValidation
 
 import java.text.SimpleDateFormat
 
@@ -35,17 +35,19 @@ import org.apache.spark.ml.tuning.{ParamGridBuilder, CrossValidator}
 import org.apache.spark.mllib.linalg.Vector
 import org.apache.spark.sql.{Row, SQLContext}
 
+import org.apache.spark.ml.feature.FeatureTransformer
+
 
 object CrossValidation {
 
-  /*def crossValidate(data: RDD[DataSet]) {
-    val conf = new SparkConf().setAppName("CrossValidatorExample")
+  def crossValidate(data: RDD[DataSet], sc:SparkContext, sqlContext : SQLContext) {
+    /*val conf = new SparkConf().setAppName("CrossValidatorExample")
     val sc = new SparkContext(conf)
-    val sqlContext = new SQLContext(sc)
+    val sqlContext = new SQLContext(sc)*/
     import sqlContext.implicits._
 
     // Prepare training documents, which are labeled.
-    val training = sc.parallelize(Seq(
+    /*val training = sc.parallelize(Seq(
       LabeledDocument(0L, "a b c d e spark", 1.0),
       LabeledDocument(1L, "b d", 0.0),
       LabeledDocument(2L, "spark f g h", 1.0),
@@ -57,19 +59,49 @@ object CrossValidation {
       LabeledDocument(8L, "e spark program", 1.0),
       LabeledDocument(9L, "a e c l", 0.0),
       LabeledDocument(10L, "spark compile", 1.0),
-      LabeledDocument(11L, "hadoop software", 0.0)))
-
+      LabeledDocument(11L, "hadoop software", 0.0)))*/
+	  
+	  
+	  
+	  //val labeled = data.map(x => new LabeledPoint(x._2, x._3))
+	    println("Number of patients: " + data.count())
+		
+		val casePatients = data.filter(x => x.label == 1)
+		val nbrCasePatients = casePatients.count()
+		println("Number of case patients: " + nbrCasePatients)
+		val notCasePatients = data.filter(x => x.label ==0)
+		val nbrNotCasePatients = notCasePatients.count()
+		println("Number of not case patients: " + nbrNotCasePatients)
+		
+		val fractionInTestingSet = 0.2
+		
+		val testingCase = casePatients.sample(false, fractionInTestingSet, 12345).cache()
+		val testingCaseSize = testingCase.count()
+		val trainingCase = casePatients.subtract(testingCase).cache()
+		val trainingCaseSize = trainingCase.count()
+		println("Number of case patients in training set: " + trainingCaseSize)
+		println("Number of case patients in testing set: " + testingCaseSize)
+		
+		val trainingSet = trainingCase.union(notCasePatients.sample(false, trainingCaseSize.toDouble / nbrNotCasePatients, 12345))
+		val testingSet = testingCase.union(notCasePatients.sample(false, (testingCaseSize.toDouble + 1.0) / nbrNotCasePatients, 54321))
+		
+		println("Training set size: " + trainingSet.count)
+		println("Testing set size: " + testingSet.count)
+		
+	  
+	  
     // Configure an ML pipeline, which consists of three stages: tokenizer, hashingTF, and lr.
-    val tokenizer = new Tokenizer()
+    /*val tokenizer = new Tokenizer()
       .setInputCol("text")
-      .setOutputCol("words")
-    val hashingTF = new HashingTF()
-      .setInputCol(tokenizer.getOutputCol)
+      .setOutputCol("words")*/
+	  
+    val FeatureTransformer = new FeatureTransformer()
+      .setInputCol("featureVector")
       .setOutputCol("features")
     val lr = new LogisticRegression()
       .setMaxIter(10)
     val pipeline = new Pipeline()
-      .setStages(Array(tokenizer, hashingTF, lr))
+      .setStages(Array(FeatureTransformer, lr))
 
     // We now treat the Pipeline as an Estimator, wrapping it in a CrossValidator instance.
     // This will allow us to jointly choose parameters for all Pipeline stages.
@@ -77,34 +109,39 @@ object CrossValidation {
     val crossval = new CrossValidator()
       .setEstimator(pipeline)
       .setEvaluator(new BinaryClassificationEvaluator)
+	  
+	  
     // We use a ParamGridBuilder to construct a grid of parameters to search over.
     // With 3 values for hashingTF.numFeatures and 2 values for lr.regParam,
     // this grid will have 3 x 2 = 6 parameter settings for CrossValidator to choose from.
     val paramGrid = new ParamGridBuilder()
-      .addGrid(hashingTF.numFeatures, Array(10, 100, 1000))
+      .addGrid(FeatureTransformer.numFeatures, Array(10, 100, 1000))
       .addGrid(lr.regParam, Array(0.1, 0.01))
       .build()
     crossval.setEstimatorParamMaps(paramGrid)
     crossval.setNumFolds(2) // Use 3+ in practice
 
     // Run cross-validation, and choose the best set of parameters.
-    val cvModel = crossval.fit(training.toDF())
+    val cvModel = crossval.fit(trainingSet.toDF())
 
     // Prepare test documents, which are unlabeled.
-    val test = sc.parallelize(Seq(
+    /*val test = sc.parallelize(Seq(
       Document(4L, "spark i j k"),
       Document(5L, "l m n"),
       Document(6L, "mapreduce spark"),
-      Document(7L, "apache hadoop")))
+      Document(7L, "apache hadoop")))*/
+	  
+	  
+	  
 
     // Make predictions on test documents. cvModel uses the best model found (lrModel).
-    cvModel.transform(test.toDF())
-      .select("id", "text", "probability", "prediction")
+    cvModel.transform(testingSet.toDF())
+      .select("patientID", "probability", "prediction")
       .collect()
-      .foreach { case Row(id: Long, text: String, prob: Vector, prediction: Double) =>
-      println(s"($id, $text) --> prob=$prob, prediction=$prediction")
+      .foreach { case Row(patientID: Long, prob: Vector, prediction: Double) =>
+      println(s"($patientID) --> prob=$prob, prediction=$prediction")
     }
 
-    sc.stop()
-  }*/
+    //sc.stop()
+  }
 }
