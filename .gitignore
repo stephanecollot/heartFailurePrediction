@@ -24,3 +24,6 @@ _gsdata_
 
 #data
 data/*
+
+#ROC output
+ROC/*

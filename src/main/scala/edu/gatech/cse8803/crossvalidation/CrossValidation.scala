@@ -132,8 +132,9 @@ object CrossValidation {
   val auROC = metrics.areaUnderROC()
   println("Area Under Receiver Operating Characteristic (ROC curve): " + auROC.toString)
   val ROCRDD = metrics.roc()
+  println("ROC curve: ")
   ROCRDD.foreach (x => println(x._1.toString + ", " + x._2.toString ) )
-  ROCRDD.saveAsTextFile("ROCRDD.csv")
+  ROCRDD.saveAsTextFile("ROC")
   
 	trainErr
     //sc.stop()
