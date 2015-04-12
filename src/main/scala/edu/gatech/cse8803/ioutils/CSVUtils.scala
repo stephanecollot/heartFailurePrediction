@@ -10,6 +10,7 @@ import com.databricks.spark.csv.CsvContext
 
 object CSVUtils {
   def loadCSVAsTable(sqlContext: SQLContext, path: String, tableName: String): SchemaRDD = {
+    //CsvContext csvcontext = new CsvContext(sqlContext)
     val data = sqlContext.csvFile(path)
     data.registerTempTable(tableName)
     data

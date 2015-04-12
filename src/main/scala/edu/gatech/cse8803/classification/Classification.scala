@@ -41,10 +41,10 @@ import org.apache.spark.mllib.regression.LabeledPoint
 
 object Classification {
 	
-	def classify(input: RDD[DataSet]) {
+	def classify(input: RDD[(String,Int,Vector)]) {
 		println("Doing classification")
 		
-		val labeled = input.map(x => new LabeledPoint(x.label, x.featureVector))
+		val labeled = input.map(x => new LabeledPoint(x._2, x._3))
 		println("Number of patients: " + labeled.count())
 		
 		val casePatients = labeled.filter(x => x.label == 1)
@@ -76,9 +76,9 @@ object Classification {
 		//Log info for debug
 		println("testing set size: " + testing.count())
 		println("training set size: " + training.count())
-		val numberOfCasePatientsInTrainingSet = training.filter(x => x.label == 1).count
+		val numberOfCasePatientsInTrainingSet = training.filter(x => x._2 == 1).count
 		println("number of case patients in training set: " + numberOfCasePatientsInTrainingSet)
-		val numberOfCasePatientsInTestingSet = testing.filter(x => x.label == 1).count
+		val numberOfCasePatientsInTestingSet = testing.filter(x => x._2 == 1).count
 		println("number of case patients in testing set: " + numberOfCasePatientsInTestingSet)
 		* */
 		
