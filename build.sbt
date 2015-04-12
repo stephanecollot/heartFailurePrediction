@@ -2,7 +2,7 @@ import AssemblyKeys._
 
 assemblySettings
 
-name := "cse8803_hw3_template"
+name := "cse8803_project"
 
 version := "1.0"
 
