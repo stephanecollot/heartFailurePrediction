@@ -134,7 +134,7 @@ object CrossValidation {
   val ROCRDD = metrics.roc()
   println("ROC curve: ")
   ROCRDD.foreach (x => println(x._1.toString + ", " + x._2.toString ) )
-  ROCRDD.saveAsTextFile("ROC")
+  //ROCRDD.saveAsTextFile("ROC")
   
 	trainErr
     //sc.stop()
