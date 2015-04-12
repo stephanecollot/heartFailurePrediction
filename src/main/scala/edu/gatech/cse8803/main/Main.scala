@@ -164,7 +164,9 @@ object Main {
     var patientLabel = patientAll.union(patient1).reduceByKey( Math.max(_,_)) // (patientID, label)
     println("number of patient: " + patientLabel.count)
     
-    var inputClassifier = patientLabel.join(rawFeatures).map(p => DataSet(p._1, p._2._1, p._2._2)) // (patientID, label, vector)
+    var allfeats = patientLabel.join(rawFeatures)
+    var inputClassifier = allfeats .map(p => (p._1, p._2._1, p._2._2)) // (patientID, label, vector)
+    var inputCV = allfeats.map(p => DataSet(p._1, p._2._1, p._2._2)) // (patientID, label, vector)
     println("inputClassifier.take(5):")
     inputClassifier.take(5).toList.foreach(println)
     
@@ -174,7 +176,7 @@ object Main {
 
 
 
-    var err = CrossValidation.crossValidate(inputClassifier,sc,sqlContext) 
+    var err = CrossValidation.crossValidate(inputCV,sc,sqlContext) 
     println("Done")
     sc.stop()
   }
