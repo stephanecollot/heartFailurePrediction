@@ -33,6 +33,7 @@ import org.apache.spark.ml.evaluation.BinaryClassificationEvaluator
 import org.apache.spark.ml.feature.{HashingTF, Tokenizer}
 import org.apache.spark.ml.tuning.{ParamGridBuilder, CrossValidator}
 import org.apache.spark.mllib.linalg.Vector
+import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics // For ROC
 import org.apache.spark.sql.{Row, SQLContext}
 
 import org.apache.spark.ml.feature.FeatureTransformer
@@ -108,8 +109,6 @@ object CrossValidation {
     // Run cross-validation, and choose the best set of parameters.
     val cvModel = crossval.fit(trainingSet.toDF())
 
-
-
     // Make predictions on test documents. cvModel uses the best model found (lrModel).
     val results = cvModel.transform(testingSet.toDF())
       .select("patientID", "prediction")
@@ -126,6 +125,16 @@ object CrossValidation {
 	val trainErr = labelAndPreds.filter(r => r._2._1 != r._2._2).count.toDouble / testingSet.count
 		println("Training Error = " + trainErr)
 	
+  // Compute raw scores on the test set. 
+  val scoreAndLabels = labelAndPreds.map { r => (r._2._1.toDouble, r._2._2.toDouble) }
+  // Get evaluation metrics.
+  val metrics = new BinaryClassificationMetrics(scoreAndLabels)
+  val auROC = metrics.areaUnderROC()
+  println("Area Under Receiver Operating Characteristic (ROC curve): " + auROC.toString)
+  val ROCRDD = metrics.roc()
+  ROCRDD.foreach (x => println(x._1.toString + ", " + x._2.toString ) )
+  ROCRDD.saveAsTextFile("ROCRDD.csv")
+  
 	trainErr
     //sc.stop()
   }
