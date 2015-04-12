@@ -16,9 +16,7 @@ resolvers ++= Seq(
 libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-core" % "1.3.0",
   "org.apache.spark" %% "spark-mllib" % "1.3.0",
-  "com.databricks"    % "spark-csv_2.10" % "1.0.0",
-  "com.chuusai"       % "shapeless_2.10.4"             % "2.0.0",
-  "org.apache.spark" %% "spark-graphx" % "1.3.0"
+  "com.databricks"   % "spark-csv_2.11" % "1.0.3"
 )
 
 mainClass in assembly := Some("edu.gatech.cse8803.main.Main")
