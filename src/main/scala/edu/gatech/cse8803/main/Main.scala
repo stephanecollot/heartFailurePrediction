@@ -170,11 +170,8 @@ object Main {
     println("inputClassifier.take(5):")
     inputClassifier.take(5).toList.foreach(println)
     
-
     //Classification
-    Classification.classify(inputClassifier)
-
-
+    //Classification.classify(inputClassifier) // Basic without pipeline
 
     var err = CrossValidation.crossValidate(inputCV,sc,sqlContext) 
     println("Done")

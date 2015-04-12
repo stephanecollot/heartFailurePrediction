@@ -120,7 +120,7 @@ object CrossValidation {
 	
 	val labeled = testingSet.map(x => (x.patientID, x.label))
 	
-	val labelAndPreds = results.join(labeled)
+	val labelAndPreds = results.join(labeled) // (PatientID, (prediction, label))
 	
 	val trainErr = labelAndPreds.filter(r => r._2._1 != r._2._2).count.toDouble / testingSet.count
 		println("Training Error = " + trainErr)
