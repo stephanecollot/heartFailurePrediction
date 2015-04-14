@@ -151,7 +151,8 @@ object CrossValidation {
     println("Testing Confusion: ")
     println(testingConfusion.toString)
     println("Testing AUROC: " + testingAUROC.toString)
-    println("Testing ROC: " + testingROC.foreach(x => print("[" + x._1.toString + ", " + x._2.toString + "]" ) ))
+    print("Testing ROC: ")
+    testingROC.foreach(x => print("[" + x._1.toString + ", " + x._2.toString + "] " ) )
     println("")
     
     println("Training:")
@@ -159,7 +160,8 @@ object CrossValidation {
     println("Training Confusion: ")
     println(trainingConfusion.toString)
     println("Training AUROC: " + trainingAUROC.toString)
-    println("Training ROC: " + trainingROC.foreach(x => print("[" + x._1.toString + ", " + x._2.toString + "]" ) ))
+    print("Training ROC: ")
+    trainingROC.foreach(x => print("[" + x._1.toString + ", " + x._2.toString + "] " ) )
     println("")
     
     //ROCRDD.saveAsTextFile("ROC")
