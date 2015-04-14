@@ -77,6 +77,8 @@ object Main {
 
   def main(args: Array[String]) {
   
+    val sysTime = System.nanoTime
+  
     //Change log level
     Logger.getLogger("org").setLevel(Level.WARN)
     Logger.getLogger("akka").setLevel(Level.WARN)
@@ -174,7 +176,9 @@ object Main {
     //Classification.classify(inputClassifier) // Basic without pipeline
 
     CrossValidation.crossValidate(inputCV,sc,sqlContext)
-    println("Done")
+    println("Done2")
+    var time = (System.nanoTime-sysTime)/(1e6*1000)
+    println("time: "+time.toString+"s")
     sc.stop()
   }
 
