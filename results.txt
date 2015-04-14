@@ -1,0 +1,35 @@
+Results:
+
+##############################################
+With only labResultF Features:
+Testing:
+Testing Accuracy: 0.9767441860465116
+Testing Confusion:
+3723.0  2.0
+88.0    57.0
+Testing AUROC: 0.6962832677620922
+Testing ROC: [5.369127516778523E-4, 0.3931034482758621] [1.0, 1.0] [0.0, 0.0] [1.0, 1.0]
+Training:
+Training Accuracy: 0.9709883625635142
+Training Confusion:
+5854.0  2.0
+175.0   70.0
+Training AUROC: 0.6426863778298204
+Training ROC: [3.4153005464480874E-4, 0.2857142857142857] [1.0, 1.0] [0.0, 0.0] [1.0, 1.0]
+
+##############################################
+With all Features:
+Testing:
+Testing Accuracy: 0.9948314053654935
+Testing Confusion:
+3881.0  2.0
+19.0    161.0
+Testing AUROC: 0.9469646893867857
+Testing ROC: [5.150656708730364E-4, 0.8944444444444445] [1.0, 1.0] [0.0, 0.0] [1.0, 1.0]
+Training:
+Training Accuracy: 0.9951194883877482
+Training Confusion:
+5695.0  3.0
+26.0    218.0
+Training AUROC: 0.9464580612121596
+Training ROC: [5.265005265005265E-4, 0.8934426229508197] [1.0, 1.0] [0.0, 0.0] [1.0, 1.0]
