@@ -124,23 +124,23 @@ object CrossValidation {
     val testingEstimatesLabels = testingResults.join(testingSet.map(x => (x.patientID, x.label))) // (patientID, (estimate, label))
                                                .map { r => (r._2._1.toDouble, r._2._2.toDouble) } // (estimate, label)
                                                
-    val trainingEstimatesLabels = trainingResults.join(testingSet.map(x => (x.patientID, x.label))) // (patientID, (estimate, label))
+    val trainingEstimatesLabels = trainingResults.join(trainingSet.map(x => (x.patientID, x.label))) // (patientID, (estimate, label))
                                                  .map { r => (r._2._1.toDouble, r._2._2.toDouble) } // (estimate, label)
-    
-    val testErr = testingEstimatesLabels.filter(r => r._1 != r._2).count.toDouble / testingSet.count
-    println("Testing Error = " + testErr)
-    
+        
     // Get evaluation metrics.
     val testingBinaryMetrics = new BinaryClassificationMetrics(testingEstimatesLabels)
     val testingMulticlassMetrics = new MulticlassMetrics(testingEstimatesLabels)
+    
     val trainingBinaryMetrics = new BinaryClassificationMetrics(trainingEstimatesLabels)
     val trainingMulticlassMetrics = new MulticlassMetrics(trainingEstimatesLabels)
     
-    val testingAccuracy = 1 - testingMulticlassMetrics.precision
+    // Get metrics values
+    val testingAccuracy = testingMulticlassMetrics.precision
     val testingConfusion = testingMulticlassMetrics.confusionMatrix
     val testingAUROC = testingBinaryMetrics.areaUnderROC()
     val testingROC = testingBinaryMetrics.roc()
-    val trainingAccuracy = 1 - testingMulticlassMetrics.precision
+    
+    val trainingAccuracy = trainingMulticlassMetrics.precision
     val trainingConfusion = trainingMulticlassMetrics.confusionMatrix
     val trainingAUROC = trainingBinaryMetrics.areaUnderROC()
     val trainingROC = trainingBinaryMetrics.roc()
@@ -148,16 +148,20 @@ object CrossValidation {
     // Print results
     println("Testing:")
     println("Testing Accuracy: " + testingAccuracy.toString)
-    println("Testing Confusion: " + testingConfusion.toString)
+    println("Testing Confusion: ")
+    println(testingConfusion.toString)
     println("Testing AUROC: " + testingAUROC.toString)
-    println("Testing ROC: ")
-    //testingROC.foreach(x => println(x._1.toString + ", " + x._2.toString ) )
+    println("Testing ROC: " + testingROC.foreach(x => print("[" + x._1.toString + ", " + x._2.toString + "]" ) ))
+    println("")
+    
     println("Training:")
     println("Training Accuracy: " + trainingAccuracy.toString)
-    println("Training Confusion: " + trainingConfusion.toString)
+    println("Training Confusion: ")
+    println(trainingConfusion.toString)
     println("Training AUROC: " + trainingAUROC.toString)
-    println("Training ROC: ")
-    //trainingROC.foreach(x => println(x._1.toString + ", " + x._2.toString ) )
+    println("Training ROC: " + trainingROC.foreach(x => print("[" + x._1.toString + ", " + x._2.toString + "]" ) ))
+    println("")
+    
     //ROCRDD.saveAsTextFile("ROC")
     
   }

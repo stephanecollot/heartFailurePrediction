@@ -156,7 +156,6 @@ object Main {
       FeatureConstruction.constructMedicationFeatureTuple(medicationF), // -> 0.988235294117647
       FeatureConstruction.constructVitalFeatureTuple(vitalF) // -> 0.5
     )
-    featureTuples = FeatureConstruction.constructLabFeatureTuple(labResultF)
     val rawFeatures = FeatureConstruction.construct(sc, featureTuples)
 
     // Create (patientID, label, vector)
