@@ -52,7 +52,7 @@ object CrossValidation {
 		val notCasePatients = data.filter(x => x.label == 0)
 		val nbrNotCasePatients = notCasePatients.count()
 		println("Number of not case patients: " + nbrNotCasePatients)
-		
+    
 		val fractionInTestingSet = 0.2
 		
 		val testingCase = casePatients.sample(false, fractionInTestingSet).cache()
@@ -94,7 +94,7 @@ object CrossValidation {
       pipeline.setStages(Array(FeatureTransformer, lr))
 		}
 		else {
-			pipeline.setStages(Array(FeatureTransformer, lrBagged))
+      pipeline.setStages(Array(FeatureTransformer, lrBagged))
 		}
 			
 
@@ -111,12 +111,12 @@ object CrossValidation {
     // this grid will have 3 x 2 = 6 parameter settings for CrossValidator to choose from.
     var paramGrid = new ParamGridBuilder()
       .addGrid(FeatureTransformer.numFeatures, Array(10, 100, 190))
-		if (arguments.contains("nobag")) {
+    if (arguments.contains("nobag")) {
       paramGrid.addGrid(lr.regParam, Array(0.1, 0.01))
-		}
-		else {
+    }
+    else {
       paramGrid.addGrid(lrBagged.regParam, Array(0.1, 0.01))
-			paramGrid.addGrid(lrBagged.bagSize, Array(1))
+      paramGrid.addGrid(lrBagged.bagSize, Array(1))
 		}
     crossval.setEstimatorParamMaps(paramGrid.build())
     crossval.setNumFolds(3) // Use 3+ in practice

@@ -201,19 +201,20 @@ object Main {
     var lab = SchemaRDDlab.map(p => LabResult(p(1).toString, dateFormat.parse(p(2).toString).getTime(), p(7).toString, p(10).toString, parseDouble(p(14).toString)))
     println("lab: "+lab.count())
     
-    var enc : RDD[(String, (String, Long))] = null ;
+    val SchemaRDDenc = CSVUtils.loadCSVAsTable(sqlContext, path+"encounter.csv")
+    // (encounterID: String, (patientID: String, date: Long))
+    var enc = SchemaRDDenc.map(p => (p(1).toString, (p(2).toString, dateFormat.parse(p(6).toString).getTime())))
+    println("enc: "+enc.count())
+		
     if (arguments.contains("out")) {
       val SchemaRDDencOut = CSVUtils.loadCSVAsTable(sqlContext, path+"encounter_outpatient.csv")
       // (encounterID: String, (patientID: String, date: Long))
-      enc = SchemaRDDencOut.map(p => (p(1).toString, (p(2).toString, dateFormat.parse(p(5).toString).getTime())))
-      println("encOut: "+enc.count())
+      var encOut = SchemaRDDencOut.map(p => (p(1).toString, (p(2).toString, dateFormat.parse(p(5).toString).getTime())))
+      println("encOut: "+encOut.count())
+      enc = enc.union(encOut)
+      println("encMerged: "+enc.count())
     }
-    else {
-      val SchemaRDDenc = CSVUtils.loadCSVAsTable(sqlContext, path+"encounter.csv")
-      // (encounterID: String, (patientID: String, date: Long))
-      enc = SchemaRDDenc.map(p => (p(1).toString, (p(2).toString, dateFormat.parse(p(6).toString).getTime())))
-      println("enc: "+enc.count())
-    }
+
     
     val SchemaRDDencDX = CSVUtils.loadCSVAsTable(sqlContext, path+"encounter_dx.csv")
     //(encounterID: String, icd9code: String)
