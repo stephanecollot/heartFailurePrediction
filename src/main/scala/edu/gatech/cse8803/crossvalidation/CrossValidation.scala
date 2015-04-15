@@ -35,7 +35,7 @@ import org.apache.spark.mllib.evaluation.MulticlassMetrics // For confusion matr
 import org.apache.spark.sql.{Row, SQLContext}
 
 import org.apache.spark.ml.feature.FeatureTransformer
-
+import org.apache.spark.ml.classification.BaggedLogisticRegression
 
 object CrossValidation {
 
@@ -55,15 +55,15 @@ object CrossValidation {
 		
 		val fractionInTestingSet = 0.2
 		
-		val testingCase = casePatients.sample(false, fractionInTestingSet, 12345).cache()
+		val testingCase = casePatients.sample(false, fractionInTestingSet).cache()
 		val testingCaseSize = testingCase.count()
 		val trainingCase = casePatients.subtract(testingCase).cache()
 		val trainingCaseSize = trainingCase.count()
 		println("Number of case patients in training set: " + trainingCaseSize)
 		println("Number of case patients in testing set: " + testingCaseSize)
 		
-		val trainingSet = trainingCase.union(notCasePatients.sample(false, trainingCaseSize.toDouble / nbrNotCasePatients, 12345))
-		val testingSet = testingCase.union(notCasePatients.sample(false, (testingCaseSize.toDouble + 1.0) / nbrNotCasePatients, 54321))
+		val trainingSet = trainingCase.union(notCasePatients.sample(false, trainingCaseSize.toDouble / nbrNotCasePatients))
+		val testingSet = testingCase.union(notCasePatients.sample(false, (testingCaseSize.toDouble + 1.0) / nbrNotCasePatients))
 
 		/*val splits = data.randomSplit(Array(0.6, 0.4), seed = System.currentTimeMillis().toInt)
 		val trainingSet = splits(0)
@@ -83,7 +83,7 @@ object CrossValidation {
     val FeatureTransformer = new FeatureTransformer()
       .setInputCol("featureVector")
       .setOutputCol("features")
-    val lr = new LogisticRegression()
+    val lr = new BaggedLogisticRegression()
       .setMaxIter(10)
     val pipeline = new Pipeline()
       .setStages(Array(FeatureTransformer, lr))
@@ -100,11 +100,12 @@ object CrossValidation {
     // With 3 values for hashingTF.numFeatures and 2 values for lr.regParam,
     // this grid will have 3 x 2 = 6 parameter settings for CrossValidator to choose from.
     val paramGrid = new ParamGridBuilder()
-      .addGrid(FeatureTransformer.numFeatures, Array(10, 100, 1000))
+      .addGrid(FeatureTransformer.numFeatures, Array(10, 100, 190))
       .addGrid(lr.regParam, Array(0.1, 0.01))
+	  .addGrid(lr.bagSize, Array(1))
       .build()
     crossval.setEstimatorParamMaps(paramGrid)
-    crossval.setNumFolds(10) // Use 3+ in practice
+    crossval.setNumFolds(3) // Use 3+ in practice
 
     // Run cross-validation, and choose the best set of parameters.
     val cvModel = crossval.fit(trainingSet.toDF())

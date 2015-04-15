@@ -19,6 +19,10 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext._  // Important
 import org.apache.spark.{SparkConf, SparkContext}
 
+//For random forests
+import org.apache.spark.mllib.tree.RandomForest
+import org.apache.spark.mllib.tree.configuration.Strategy
+
 import scala.io.Source
 import java.text.SimpleDateFormat
 
@@ -82,15 +86,41 @@ object Classification {
 		println("number of case patients in testing set: " + numberOfCasePatientsInTestingSet)
 		* */
 		
-		val model = LogisticRegressionWithSGD.train(trainingSet, 20)
+		//Training with logistic regression
+		println("Logistic regression")
+		val modelLR = LogisticRegressionWithSGD.train(trainingSet, 20)
 		
-		val labelAndPreds = testingSet.map { point =>
-			val prediction = model.predict(point.features)
+		val labelAndPredsLR = testingSet.map { point =>
+			val prediction = modelLR.predict(point.features)
 			(point.label, prediction)
 		}
 		
-		val trainErr = labelAndPreds.filter(r => r._1 != r._2).count.toDouble / testingSet.count
-		println("Training Error = " + trainErr)
+		val trainErrLR = labelAndPredsLR.filter(r => r._1 != r._2).count.toDouble / testingSet.count
+		println("Training Error = " + trainErrLR)
+		
+		//Training with random forest
+		val treeStrategy = Strategy.defaultStrategy("Classification")
+		val numTrees = 9
+		val featureSubsetStrategy = "auto"
+		
+		println("Random forest with 3 trees")
+		val modelRF3 = RandomForest.trainClassifier(trainingSet, treeStrategy, 3, featureSubsetStrategy, seed = 12345)
+		val labelAndPredsRF3 = testingSet.map { point =>
+			val prediction = modelRF3.predict(point.features)
+			(point.label, prediction)
+		}
+		val trainErrRF3 = labelAndPredsRF3.filter(r => r._1 != r._2).count.toDouble / testingSet.count
+		println("Training Error = " + trainErrRF3)
+		
+		println("Random forest with 9 trees")
+		val modelRF9 = RandomForest.trainClassifier(trainingSet, treeStrategy, numTrees, featureSubsetStrategy, seed = 12345)
+		val labelAndPredsRF9 = testingSet.map { point =>
+			val prediction = modelRF9.predict(point.features)
+			(point.label, prediction)
+		}
+		val trainErrRF9 = labelAndPredsRF9.filter(r => r._1 != r._2).count.toDouble / testingSet.count
+		println("Training Error = " + trainErrRF9)
+		
 	}
 	
 }
