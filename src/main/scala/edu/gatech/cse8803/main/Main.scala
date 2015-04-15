@@ -177,7 +177,7 @@ object Main {
     //Classification
     //Classification.classify(inputClassifier) // Basic without pipeline
 
-    CrossValidation.crossValidate(inputCV,sc,sqlContext)
+    CrossValidation.crossValidate(inputCV, sc, sqlContext, arguments)
     println("Done2")
     var time = (System.nanoTime-sysTime)/(1e6*1000)
     println("time: "+time.toString+"s")

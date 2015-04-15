@@ -54,3 +54,41 @@ Training Confusion:
 Training AUROC: 0.9548642089420186
 Training ROC: [3.4352456200618345E-4, 0.9100719424460432] [1.0, 1.0] [0.0, 0.0] [1.0, 1.0]
 Done
+
+##############################################
+BIG NOBAG
+Testing:
+Testing Accuracy: 0.9845360824742269
+Testing Confusion:
+94.0  3.0
+0.0   97.0
+Testing AUROC: 0.9845360824742269
+Testing ROC: [0.030927835051546393, 1.0] [1.0, 1.0] [0.0, 0.0] [1.0, 1.0]
+Training:
+Training Accuracy: 0.9954614220877458
+Training Confusion:
+331.0  3.0
+0.0    327.0
+Training AUROC: 0.9955089820359281
+Training ROC: [0.008982035928143712, 1.0] [1.0, 1.0] [0.0, 0.0] [1.0, 1.0]
+Done2
+time: 296.670785379s
+
+##############################################
+BIG with bagging
+Testing:
+Testing Accuracy: 0.9728260869565217
+Testing Confusion:
+92.0  4.0
+1.0   87.0
+Testing AUROC: 0.9734848484848486
+Testing ROC: [0.041666666666666664, 0.9886363636363636] [1.0, 1.0] [0.0, 0.0] [1.0, 1.0]
+Training:
+Training Accuracy: 0.9939301972685888
+Training Confusion:
+322.0  1.0
+3.0    333.0
+Training AUROC: 0.9939877266696152
+Training ROC: [0.0030959752321981426, 0.9910714285714286] [1.0, 1.0] [0.0, 0.0] [1.0, 1.0]
+Done2
+time: 407.500950915s

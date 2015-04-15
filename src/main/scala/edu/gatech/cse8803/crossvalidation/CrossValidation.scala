@@ -39,7 +39,7 @@ import org.apache.spark.ml.classification.BaggedLogisticRegression
 
 object CrossValidation {
 
-  def crossValidate(data: RDD[DataSet], sc:SparkContext, sqlContext : SQLContext) = {
+  def crossValidate(data: RDD[DataSet], sc: SparkContext, sqlContext: SQLContext, arguments: Array[String]) = {
     import sqlContext.implicits._
 	  
 	  
@@ -83,10 +83,20 @@ object CrossValidation {
     val FeatureTransformer = new FeatureTransformer()
       .setInputCol("featureVector")
       .setOutputCol("features")
-    val lr = new BaggedLogisticRegression()
-      .setMaxIter(10)
+			
+		var lr = new LogisticRegression()
+			.setMaxIter(10)
+		var lrBagged = new BaggedLogisticRegression()
+			.setMaxIter(10)
+		
     val pipeline = new Pipeline()
-      .setStages(Array(FeatureTransformer, lr))
+		if (arguments.contains("nobag")) {
+      pipeline.setStages(Array(FeatureTransformer, lr))
+		}
+		else {
+			pipeline.setStages(Array(FeatureTransformer, lrBagged))
+		}
+			
 
     // We now treat the Pipeline as an Estimator, wrapping it in a CrossValidator instance.
     // This will allow us to jointly choose parameters for all Pipeline stages.
@@ -99,12 +109,16 @@ object CrossValidation {
     // We use a ParamGridBuilder to construct a grid of parameters to search over.
     // With 3 values for hashingTF.numFeatures and 2 values for lr.regParam,
     // this grid will have 3 x 2 = 6 parameter settings for CrossValidator to choose from.
-    val paramGrid = new ParamGridBuilder()
+    var paramGrid = new ParamGridBuilder()
       .addGrid(FeatureTransformer.numFeatures, Array(10, 100, 190))
-      .addGrid(lr.regParam, Array(0.1, 0.01))
-	  .addGrid(lr.bagSize, Array(1))
-      .build()
-    crossval.setEstimatorParamMaps(paramGrid)
+		if (arguments.contains("nobag")) {
+      paramGrid.addGrid(lr.regParam, Array(0.1, 0.01))
+		}
+		else {
+      paramGrid.addGrid(lrBagged.regParam, Array(0.1, 0.01))
+			paramGrid.addGrid(lrBagged.bagSize, Array(1))
+		}
+    crossval.setEstimatorParamMaps(paramGrid.build())
     crossval.setNumFolds(3) // Use 3+ in practice
 
     // Run cross-validation, and choose the best set of parameters.
