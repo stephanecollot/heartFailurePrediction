@@ -97,14 +97,16 @@ object Main {
     var f1 = diagnostic.filter(d => (parseDouble(d.icd9code) > 390.0 && parseDouble(d.icd9code) < 495.0))
     println("heart count: "+f1.count)
     
-    var f2 = f1.map(d => (d.patientID, d.icd9code))
-    var g1 = f2.groupByKey
+    var g1 = f1.map(d => (d.patientID, 1))
+							 .reduceByKey{case (x1, x2) => (x1 + x2)}
     println("patient heart count: "+g1.count)
     
-    var g2 = diagnostic.map(d => (d.patientID, d.icd9code)).groupByKey
+    var g2 = diagnostic.map(d => (d.patientID, 1))
+											 .reduceByKey{case (x1, x2) => (x1 + x2)}
     println("patient TOTAL count: "+g2.count)
     
-    var m1 = f1.map(d => (d.icd9code, 1)).reduceByKey{case (x1, x2) => (x1 + x2)}
+    var m1 = f1.map(d => (d.icd9code, 1))
+							 .reduceByKey{case (x1, x2) => (x1 + x2)}
     m1.foreach(println)
         
     /** Feature construction with all features */
