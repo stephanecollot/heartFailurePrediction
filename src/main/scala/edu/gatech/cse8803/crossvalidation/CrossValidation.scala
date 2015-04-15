@@ -100,12 +100,12 @@ object CrossValidation {
     // With 3 values for hashingTF.numFeatures and 2 values for lr.regParam,
     // this grid will have 3 x 2 = 6 parameter settings for CrossValidator to choose from.
     val paramGrid = new ParamGridBuilder()
-      .addGrid(FeatureTransformer.numFeatures, Array(10, 100, 1000))
+      .addGrid(FeatureTransformer.numFeatures, Array(10, 100, 190))
       .addGrid(lr.regParam, Array(0.1, 0.01))
 	  .addGrid(lr.bagSize, Array(1))
       .build()
     crossval.setEstimatorParamMaps(paramGrid)
-    crossval.setNumFolds(10) // Use 3+ in practice
+    crossval.setNumFolds(3) // Use 3+ in practice
 
     // Run cross-validation, and choose the best set of parameters.
     val cvModel = crossval.fit(trainingSet.toDF())
