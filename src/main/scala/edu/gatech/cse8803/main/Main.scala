@@ -150,7 +150,7 @@ object Main {
                                 
     println("FILTERED lab: "+labResultF.count()+"  diag: "+diagnosticF.count()+"  med: "+medicationF.count()+"  vital: "+vitalF.count())
     
-    val featureTuples = sc.union(
+    var featureTuples = sc.union(
       FeatureConstruction.constructDiagnosticFeatureTuple(diagnosticF), // -> 0.9941176470588236
       FeatureConstruction.constructLabFeatureTuple(labResultF), //-> 0.956985294117647
       FeatureConstruction.constructMedicationFeatureTuple(medicationF), // -> 0.988235294117647
@@ -173,7 +173,7 @@ object Main {
     //Classification
     //Classification.classify(inputClassifier) // Basic without pipeline
 
-    var err = CrossValidation.crossValidate(inputCV,sc,sqlContext) 
+    CrossValidation.crossValidate(inputCV,sc,sqlContext)
     println("Done")
     sc.stop()
   }
