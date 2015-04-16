@@ -97,7 +97,16 @@ class BaggedLogisticRegression
 	
 	val sc = oldDataset.context
 	for( i <- 0 to paramMap(bagSize)-1){
-		var resampledSet = sc.union(for( s <- 0 to 9) yield oldDataset.sample(true, 0.1))
+	
+		//var resampledSet = sc.union(for( s <- 0 to 9) yield oldDataset.sample(true, 0.1))
+		
+		val casePatients = oldDataset.filter(x => x.label == 1)
+		var resampledCaseSet = sc.union(for( s <- 0 to 9) yield casePatients.sample(true, 0.1))
+		
+		val notCasePatients = oldDataset.filter(x => x.label == 0)
+		var resampledNotCaseSet = sc.union(for( s <- 0 to 9) yield notCasePatients.sample(true, 0.1))
+		
+		val resampledSet = resampledCaseSet.union(resampledNotCaseSet)		
 		
 		if (handlePersistence) {
 			resampledSet.persist(StorageLevel.MEMORY_AND_DISK)

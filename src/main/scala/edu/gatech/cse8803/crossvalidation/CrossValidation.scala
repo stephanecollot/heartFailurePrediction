@@ -37,6 +37,8 @@ import org.apache.spark.sql.{Row, SQLContext}
 import org.apache.spark.ml.feature.FeatureTransformer
 import org.apache.spark.ml.classification.BaggedLogisticRegression
 
+import org.apache.spark.ml.classification.RandomForestForPipeline
+
 object CrossValidation {
 
   def crossValidate(data: RDD[DataSet], sc: SparkContext, sqlContext: SQLContext, arguments: Array[String]) = {
@@ -83,6 +85,9 @@ object CrossValidation {
     val FeatureTransformer = new FeatureTransformer()
       .setInputCol("featureVector")
       .setOutputCol("features")
+	
+	/*-------------------------------------------------------------Logistic Regression---------------------------------------------------*/
+	
 			
 		var lr = new LogisticRegression()
 			.setMaxIter(10)
@@ -177,6 +182,87 @@ object CrossValidation {
     println("")
     
     //ROCRDD.saveAsTextFile("ROC")
+	
+	
+	/*------------------------------------------Random Forest-------------------------------------------------*/
+	
+	
+	
+	var rf = new RandomForestForPipeline()
+	
+		
+    val rfpipeline = new Pipeline()
+	rfpipeline.setStages(Array(FeatureTransformer, rf))
+	
+	val rfcrossval = new CrossValidator()
+      .setEstimator(rfpipeline)
+      .setEvaluator(new BinaryClassificationEvaluator)
+	
+    var rfparamGrid = new ParamGridBuilder()
+      .addGrid(FeatureTransformer.numFeatures, Array(10, 100, 190))
+	  .addGrid(rf.strategy, Array("Classification"))
+	  .addGrid(rf.numTrees, Array(3, 9))
+	  .addGrid(rf.featureSubsetStrategy, Array("auto"))
+	  
+		
+    rfcrossval.setEstimatorParamMaps(rfparamGrid.build())
+    rfcrossval.setNumFolds(3) // Use 3+ in practice
+
+    // Run cross-validation, and choose the best set of parameters.
+    val rfcvModel = rfcrossval.fit(trainingSet.toDF())
+
+    // Make predictions on test documents. cvModel uses the best model found (lrModel).
+    val rftestingResults = rfcvModel.transform(testingSet.toDF())
+                                .select("patientID", "prediction")
+                                .map({case Row(patientID: String, prediction: Double) => (patientID.toString,prediction.toDouble)})
+	  
+    val rftrainingResults = rfcvModel.transform(trainingSet.toDF())
+                                 .select("patientID", "prediction")
+                                 .map({case Row(patientID: String, prediction: Double) => (patientID.toString,prediction.toDouble)})
+                                
+    val rftestingEstimatesLabels = rftestingResults.join(testingSet.map(x => (x.patientID, x.label))) // (patientID, (estimate, label))
+                                               .map { r => (r._2._1.toDouble, r._2._2.toDouble) } // (estimate, label)
+                                               
+    val rftrainingEstimatesLabels = rftrainingResults.join(trainingSet.map(x => (x.patientID, x.label))) // (patientID, (estimate, label))
+                                                 .map { r => (r._2._1.toDouble, r._2._2.toDouble) } // (estimate, label)
+        
+    // Get evaluation metrics.
+    val rftestingBinaryMetrics = new BinaryClassificationMetrics(rftestingEstimatesLabels)
+    val rftestingMulticlassMetrics = new MulticlassMetrics(rftestingEstimatesLabels)
+    
+    val rftrainingBinaryMetrics = new BinaryClassificationMetrics(rftrainingEstimatesLabels)
+    val rftrainingMulticlassMetrics = new MulticlassMetrics(rftrainingEstimatesLabels)
+    
+    // Get metrics values
+    val rftestingAccuracy = rftestingMulticlassMetrics.precision
+    val rftestingConfusion = rftestingMulticlassMetrics.confusionMatrix
+    val rftestingAUROC = rftestingBinaryMetrics.areaUnderROC()
+    val rftestingROC = rftestingBinaryMetrics.roc()
+    
+    val rftrainingAccuracy = rftrainingMulticlassMetrics.precision
+    val rftrainingConfusion = rftrainingMulticlassMetrics.confusionMatrix
+    val rftrainingAUROC = rftrainingBinaryMetrics.areaUnderROC()
+    val rftrainingROC = rftrainingBinaryMetrics.roc()
+
+    // Print results
+	println("=========================================Random Forest====================================")
+    println("Testing:")
+    println("Testing Accuracy: " + rftestingAccuracy.toString)
+    println("Testing Confusion: ")
+    println(rftestingConfusion.toString)
+    println("Testing AUROC: " + rftestingAUROC.toString)
+    print("Testing ROC: ")
+    rftestingROC.foreach(x => print("[" + x._1.toString + ", " + x._2.toString + "] " ) )
+    println("")
+    
+    println("Training:")
+    println("Training Accuracy: " + rftrainingAccuracy.toString)
+    println("Training Confusion: ")
+    println(rftrainingConfusion.toString)
+    println("Training AUROC: " + rftrainingAUROC.toString)
+    print("Training ROC: ")
+    rftrainingROC.foreach(x => print("[" + x._1.toString + ", " + x._2.toString + "] " ) )
+    println("")
     
   }
 }
