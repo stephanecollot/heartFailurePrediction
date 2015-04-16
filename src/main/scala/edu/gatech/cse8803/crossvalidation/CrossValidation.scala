@@ -65,7 +65,7 @@ object CrossValidation {
 		println("Number of case patients in testing set: " + testingCaseSize)
 		
 		val trainingSet = trainingCase.union(notCasePatients.sample(false, trainingCaseSize.toDouble / nbrNotCasePatients))
-		val testingSet = testingCase.union(notCasePatients.sample(false, (testingCaseSize.toDouble + 1.0) / nbrNotCasePatients))
+		val testingSet = testingCase.union(notCasePatients.sample(false, (1.0-(trainingCaseSize.toDouble / nbrNotCasePatients) )))
 
 		/*val splits = data.randomSplit(Array(0.6, 0.4), seed = System.currentTimeMillis().toInt)
 		val trainingSet = splits(0)
