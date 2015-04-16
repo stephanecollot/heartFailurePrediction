@@ -115,11 +115,17 @@ object Main {
     var patientDate = diagnostic.filter(d => (d.icd9code == targetCode)) // this constains only label=1 patient
                                 .map(d => (d.patientID, d.date)) // (patientID, date)
                                 .reduceByKey( Math.min(_,_))     // (patientID, maxDate)
-                                
+    /*println("patient with targetCode: " + targetCode.toString + " count: "+patientDate.count)
+    
+    var diagMinMax = diagnostic.map(d => ((d.date, d.date))) // (patientID, date, date)
+                               .reduce( (x,y) => (Math.min(x._1, y._1), Math.max(x._2,y._2))) // (patientID, (minDate, maxDate))
+    println("diag Min & Max date: " + diagMinMax.toString)*/
+  
+    val predictWindow = 86400000 * 365      
     var diagnosticF = diagnostic.map(d => (d.patientID, d))  // (patientID, diag)
                                 .leftOuterJoin(patientDate)  // (patientID, (diag, maxDate)) or (diag, None)
                                 .filter(d => d._2._2 match {case Some(value) =>
-                                                              (d._2._1.date < value)
+                                                              (d._2._1.date < value-predictWindow)
                                                             case None =>
                                                               true
                                                            })
@@ -128,7 +134,7 @@ object Main {
     var labResultF = labResult.map(d => (d.patientID, d))  // (patientID, lab)
                               .leftOuterJoin(patientDate)  // (patientID, (lab, maxDate)) or (lab, None)
                               .filter(d => d._2._2 match {case Some(value) =>
-                                                            (d._2._1.date < value)
+                                                            (d._2._1.date < value-predictWindow)
                                                           case None =>
                                                             true
                                                          })
@@ -137,7 +143,7 @@ object Main {
     var medicationF = medication.map(d => (d.patientID, d))  // (patientID, med)
                                 .leftOuterJoin(patientDate)  // (patientID, (med, maxDate)) or (med, None)
                                 .filter(d => d._2._2 match {case Some(value) =>
-                                                              (d._2._1.date < value)
+                                                              (d._2._1.date < value-predictWindow)
                                                             case None =>
                                                               true
                                                            })
@@ -146,7 +152,7 @@ object Main {
     var vitalF = vital.map(d => (d.patientID, d))  // (patientID, vital)
                       .leftOuterJoin(patientDate)  // (patientID, (vital, maxDate)) or (vital, None)
                       .filter(d => d._2._2 match {case Some(value) =>
-                                                    (d._2._1.date < value)
+                                                    (d._2._1.date < value-predictWindow)
                                                   case None =>
                                                     true
                                                  })

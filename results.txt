@@ -92,3 +92,45 @@ Training AUROC: 0.9939877266696152
 Training ROC: [0.0030959752321981426, 0.9910714285714286] [1.0, 1.0] [0.0, 0.0] [1.0, 1.0]
 Done2
 time: 407.500950915s
+
+##############################################
+Out patient with patient, with bagging
+Testing:
+Testing Accuracy: 1.0
+Testing Confusion:
+79.0  0.0
+0.0   73.0
+Testing AUROC: 1.0
+Testing ROC: [0.0, 1.0] [1.0, 1.0] [0.0, 0.0] [1.0, 1.0]
+Training:
+Training Accuracy: 0.9958391123439667
+Training Confusion:
+367.0  3.0
+0.0    351.0
+Training AUROC: 0.9959459459459459
+Training ROC: [0.008108108108108109, 1.0] [1.0, 1.0] [0.0, 0.0] [1.0, 1.0]
+Done2
+time: 640.516233978s
+
+
+
+
+
+
+
+Testing:
+Testing Accuracy: 0.9947916666666666
+Testing Confusion:
+94.0  1.0
+0.0   97.0
+Testing AUROC: 0.9947368421052631
+Testing ROC: [0.010526315789473684, 1.0] [1.0, 1.0] [0.0, 0.0] [1.0, 1.0]
+Training:
+Training Accuracy: 0.9985163204747775
+Training Confusion:
+346.0  1.0
+0.0    327.0
+Training AUROC: 0.9985590778097982
+Training ROC: [0.002881844380403458, 1.0] [1.0, 1.0] [0.0, 0.0] [1.0, 1.0]
+Done2
+time: 396.106332439s
