@@ -38,7 +38,7 @@ Training AUROC: 0.9464580612121596
 Training ROC: [5.265005265005265E-4, 0.8934426229508197] [1.0, 1.0] [0.0, 0.0] [1.0, 1.0]
 
 ##############################################
-With all Features with 50/50:
+With all Features with? 50/50:
 Testing:
 Testing Accuracy: 0.993854033290653
 Testing Confusion:
@@ -56,7 +56,7 @@ Training ROC: [3.4352456200618345E-4, 0.9100719424460432] [1.0, 1.0] [0.0, 0.0] 
 Done
 
 ##############################################
-BIG NOBAG
+BIG LR NOBAG
 Testing:
 Testing Accuracy: 0.9845360824742269
 Testing Confusion:
@@ -75,7 +75,7 @@ Done2
 time: 296.670785379s
 
 ##############################################
-BIG with bagging
+BIG with LR bagging
 Testing:
 Testing Accuracy: 0.9728260869565217
 Testing Confusion:
@@ -94,7 +94,7 @@ Done2
 time: 407.500950915s
 
 ##############################################
-Out patient with patient, with bagging
+Out patient with patient, LR with bagging
 Testing:
 Testing Accuracy: 1.0
 Testing Confusion:
@@ -114,23 +114,37 @@ time: 640.516233978s
 
 
 
-
-
-
+##############################################
+Last version, without 50/50 on Testing
 
 Testing:
-Testing Accuracy: 0.9947916666666666
+Testing Accuracy: 0.9862660944206009
 Testing Confusion:
-94.0  1.0
-0.0   97.0
-Testing AUROC: 0.9947368421052631
-Testing ROC: [0.010526315789473684, 1.0] [1.0, 1.0] [0.0, 0.0] [1.0, 1.0]
+9114.0  128.0
+0.0     78.0
+Testing AUROC: 0.9930750919714347
+Testing ROC: [0.01384981605713049, 1.0] [1.0, 1.0] [0.0, 0.0] [1.0, 1.0]
 Training:
-Training Accuracy: 0.9985163204747775
+Training Accuracy: 0.9984496124031008
 Training Confusion:
-346.0  1.0
-0.0    327.0
-Training AUROC: 0.9985590778097982
-Training ROC: [0.002881844380403458, 1.0] [1.0, 1.0] [0.0, 0.0] [1.0, 1.0]
+319.0  1.0
+0.0    325.0
+Training AUROC: 0.9984375
+Training ROC: [0.003125, 1.0] [1.0, 1.0] [0.0, 0.0] [1.0, 1.0]
+=========================================Random Forest====================================
+Testing:
+Testing Accuracy: 0.9713519313304722
+Testing Confusion:
+8977.0  265.0
+2.0     76.0
+Testing AUROC: 0.9728427635265983
+Testing ROC: [0.02867344730577797, 0.9743589743589743] [1.0, 1.0] [0.0, 0.0] [1.0, 1.0]
+Training:
+Training Accuracy: 0.9736434108527132
+Training Confusion:
+314.0  6.0
+11.0   314.0
+Training AUROC: 0.9737019230769229
+Training ROC: [0.01875, 0.9661538461538461] [1.0, 1.0] [0.0, 0.0] [1.0, 1.0]
 Done2
-time: 396.106332439s
+time: 609.53550231s
