@@ -33,5 +33,7 @@ C:\spark\bin\spark-submit --class edu.gatech.cse8803.main.Main --master "local[*
 ```
 
 ## Deploy:
+If you want to launch it on a AWS cluster:
 ```
+~/spark/bin/spark-submit --class edu.gatech.cse8803.main.Main --master "spark://ec2-52-1-230-43.compute-1.amazonaws.com:7077"   --deploy-mode cluster  target/scala-2.10/cse8803_project-assembly-1.0.jar big
 ```
