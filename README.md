@@ -19,6 +19,7 @@ II) Put the big data set in ```data/GeorgiaTech_DS1_CSV/```.
 
 III) Clean the big data set: 
 	1) execute ```python27 regex.py encounter.csv``` then replace ```encounter.csv``` with ```regexOut.csv```
+	
 	2) execute ```python27 regex.py encounter_outpatient.csv``` then replace ```encounter_outpatient.csv``` with ```regexOut.csv```
 
 IV) Execute
